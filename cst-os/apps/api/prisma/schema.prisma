@@ -1,0 +1,1649 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// ─── ENUMS ───────────────────────────────────────────────────────────────────
+
+enum UserRole {
+  ceo
+  super_admin
+  manager
+  supervisor
+  sr_business_analyst
+  jr_business_analyst
+  viewer
+  pending_setup
+}
+
+enum OrgLevel {
+  ceo
+  manager
+  supervisor
+  sr_ba
+  jr_ba
+  support
+}
+
+enum UserStatus {
+  active
+  inactive
+  on_leave
+}
+
+enum ClientStatus {
+  prospect
+  onboarding
+  active
+  at_risk
+  churned
+}
+
+// ClientSegment and CompanySize converted to String fields for configurability
+
+// AccountLifecycleStage removed — lifecycleStage is now a plain String field
+// Valid values: prospect, qualified, proposal, negotiation, won, onboarding,
+//               active, hypercare, at_risk, churned, inactive
+
+enum ContactType {
+  decision_maker
+  admin
+  influencer
+  end_user_lead
+  it_contact
+  executive_sponsor
+}
+
+enum ProjectStatus {
+  draft
+  active
+  on_hold
+  completed
+  cancelled
+}
+
+enum ProjectPhase {
+  pre_sales_handover
+  kickoff
+  fit_gap
+  solution_design
+  build_config
+  uat
+  go_live
+  hypercare
+  turnover_to_maintenance
+  bau
+}
+
+enum ProjectType {
+  new_implementation
+  re_implementation
+  expansion
+  customization
+}
+
+enum TemplateCode {
+  NCI_STD
+  CUST_PRJ
+  EXPRESS
+  BAU_SUPPORT
+}
+
+enum Priority {
+  critical
+  high
+  medium
+  low
+}
+
+enum RiskLevel {
+  low
+  medium
+  high
+  critical
+}
+
+enum TaskStatus {
+  todo
+  in_progress
+  for_review
+  blocked
+  done
+  cancelled
+}
+
+enum TaskType {
+  implementation
+  customization
+  training
+  meeting
+  admin
+  rfa
+  acquisition_poc
+  system_admin
+}
+
+enum MilestoneType {
+  kickoff
+  fit_gap_completed
+  recommendation_presented
+  recommendation_approved
+  uat_conducted
+  go_live
+  training_conducted
+  hypercare_closed
+  rfa_approved
+  mockup_approved
+  courtesy_call_completed
+  kyc_completed
+  next_steps_agreed
+  dar_submitted
+}
+
+enum RfaStatus {
+  draft
+  submitted
+  under_review
+  approved
+  rejected
+  cancelled
+}
+
+enum RfaRequestType {
+  customization
+  scope_change
+  timeline_extension
+  budget_exception
+  technical_exception
+  other
+}
+
+enum RfaAiReviewGrade {
+  approved_recommended
+  approved_with_conditions
+  needs_clarification
+  rejected_recommended
+}
+
+enum ApproverAgreement {
+  agreed
+  partially_agreed
+  disagreed
+}
+
+enum MeetingType {
+  kickoff
+  fit_gap
+  courtesy_call
+  uat_walkthrough
+  training
+  internal
+  escalation
+  go_live_review
+  hypercare_review
+  external
+}
+
+enum MeetingStatus {
+  scheduled
+  completed
+  cancelled
+  no_show
+}
+
+enum BrdStatus {
+  draft
+  for_review
+  approved
+  rejected
+  superseded
+}
+
+enum FitGapStatus {
+  draft
+  for_review
+  approved
+}
+
+enum KbCategory {
+  sop
+  playbook
+  troubleshooting
+  faq
+  best_practice
+  product_guide
+  training_material
+}
+
+enum KbStatus {
+  draft
+  published
+  archived
+}
+
+enum AuditAction {
+  CREATE
+  UPDATE
+  DELETE
+  STATUS_CHANGE
+  ASSIGN
+  UNASSIGN
+}
+
+enum AiAppCategory {
+  document_generation
+  analysis
+  communication
+  design
+  validation
+  planning
+}
+
+enum AiAppStatus {
+  active
+  inactive
+  testing
+}
+
+enum ProcessFlowType {
+  current_state
+  future_state
+  system_flow
+  data_flow
+}
+
+enum LearningCategory {
+  process
+  technical
+  client_handling
+  configuration
+  change_management
+  communication
+  estimation
+}
+
+enum ImpactLevel {
+  low
+  medium
+  high
+}
+
+enum CsatSurveyType {
+  post_go_live
+  post_hypercare
+  periodic_check
+  post_training
+  ad_hoc
+}
+
+enum HolidayType {
+  regular_holiday
+  special_nonworking
+  special_working
+}
+
+enum CourtesyCallStatus {
+  pending
+  in_progress
+  completed
+  missed
+}
+
+enum ClosureReason {
+  client_request
+  non_payment
+  business_closure
+  competitor_switch
+  product_mismatch
+  contract_end_no_renewal
+  other
+}
+
+enum DealStage {
+  initial_contact
+  demo_scheduled
+  demo_done
+  proposal_sent
+  negotiation
+  verbal_agreement
+  contract_pending
+  won
+  lost
+}
+
+enum KpiPeriodStatus {
+  open
+  locked
+  finalized
+}
+
+enum ProjectRole {
+  project_manager
+  project_support
+  consultant
+  observer
+}
+
+
+enum PlanningStatus {
+  official
+  projected
+}
+
+enum TemplateStatus {
+  draft
+  published
+  archived
+}
+
+enum AccountablePartyType {
+  internal
+  external
+}
+
+enum KpiMetricFormula {
+  MILESTONE_COMPLETION_RATE
+  KYC_COMPLETION_RATE
+  TASK_COMPLETION_RATE
+  USAGE_SUPPORT_RATE
+  PROJECT_WORK_SCORE
+  MANUAL_SCORE
+  WEIGHTED_AVERAGE
+}
+
+enum FeedEventType {
+  task_completed
+  milestone_reached
+  project_phase_advanced
+  brd_approved
+  rfa_submitted
+  rfa_approved
+  project_created
+  courtesy_call_done
+  csat_received
+  go_live
+  training_done
+  account_onboarded
+  comment_mention
+  kpi_score_updated
+  poc_delivered
+  holiday_reminder
+  team_announcement
+}
+
+// ─── MODELS ──────────────────────────────────────────────────────────────────
+
+model User {
+  id                   String      @id @default(uuid())
+  fullName             String
+  email                String      @unique
+  role                 UserRole    @default(pending_setup)
+  orgLevel             OrgLevel?
+  skills               String[]
+  capacityHoursPerWeek Int         @default(40)
+  status               UserStatus  @default(active)
+  profilePhotoUrl      String?
+  department           String?
+  dateJoined           DateTime    @default(now())
+  googleId             String?     @unique
+  managerId            String?
+  reportsToId          String?
+  createdAt            DateTime    @default(now())
+  updatedAt            DateTime    @updatedAt
+
+  manager                User?                    @relation("UserManager", fields: [managerId], references: [id])
+  directReports          User[]                   @relation("UserManager")
+  managedClients         Client[]                 @relation("AccountManager")
+  assignedClients        ClientTeamMember[]
+  projectsAsPm           Project[]                @relation("ProjectPM")
+  projectTeams           ProjectTeamMember[]
+  assignedTasks          Task[]                   @relation("TaskAssignee")
+  createdTasks           Task[]                   @relation("TaskCreator")
+  timeLogs               TimeLog[]
+  rfasRequested          Rfa[]                    @relation("RfaRequester")
+  rfasApproved           Rfa[]                    @relation("RfaApprover")
+  rfasAssignedForApproval Rfa[]                   @relation("RfaAssignedApprover")
+  meetingsCreated        Meeting[]
+  brdsCreated            Brd[]                    @relation("BrdCreator")
+  brdsApproved           Brd[]                    @relation("BrdApprover")
+  fitGapsCreated         FitGapAnalysis[]
+  kbArticles             KnowledgeBase[]
+  learnings              ProjectLearning[]
+  auditLogs              AuditLog[]
+  notifications          Notification[]
+  comments               Comment[]
+  aiAppSessions          AiAppSession[]
+  riskItems              RiskItem[]
+  csatSurveysCreated     CsatSurvey[]
+  courtesyCallAssignments CourtesyCallAssignment[]
+  milestoneLogs          MilestoneLog[]
+  kpiInstances           KpiScorecardInstance[]
+  usageTargets           UsageTarget[]
+  usageActuals           UsageActual[]
+  commsLogs              CommsLog[]
+  scriptTemplates        ScriptTemplate[]
+  feedEvents             NewsFeedEvent[]
+  turnoverAsCstHandler   TurnoverRecord[]         @relation("TurnoverCstHandler")
+  turnoverAsCctReceiver  TurnoverRecord[]         @relation("TurnoverCctReceiver")
+  closuresRequested      AccountClosure[]         @relation("ClosureRequester")
+  closuresManagerApproved AccountClosure[]        @relation("ClosureManagerApprover")
+  closuresFinanceApproved AccountClosure[]        @relation("ClosureFinanceApprover")
+  closuresCeoApproved    AccountClosure[]         @relation("ClosureCeoApprover")
+  pipelineProjected      AcquisitionPipeline[]    @relation("PipelineProjectedAssignee")
+  pipelineCreated        AcquisitionPipeline[]    @relation("PipelineCreator")
+  onboardingRecords      StaffOnboarding[]        @relation("OnboardingUser")
+  supervisedOnboarding   StaffOnboarding[]        @relation("OnboardingSupervisor")
+  aiAppsCreated          AiApp[]                  @relation("AiAppCreator")
+  shareGrantsReceived    AppShareGrant[]          @relation("ShareGrantUser")
+  shareGrantsGiven       AppShareGrant[]          @relation("ShareGrantGranter")
+
+  @@map("users")
+}
+
+model Client {
+  id                       String                @id @default(uuid())
+  companyName              String
+  industry                 String?
+  companySize              String?
+  subscriptionPlan         String?
+  contractStartDate        DateTime?
+  contractEndDate          DateTime?
+  status                   ClientStatus          @default(prospect)
+  lifecycleStage           String?               @default("prospect")
+  clientHealthScore        Int?
+  assignedAccountManagerId String?
+  courtesyCallTierId       String?
+  address                  String?
+  website                  String?
+  primaryContactName       String?
+  primaryContactEmail      String?
+  primaryContactPhone      String?
+  tags                     String[]
+  segment                  String?
+  notes                    String?
+  tier                     String?   // "VIP", "1", "2", "3", "4", "5"
+  parentClientId           String?
+  createdById              String?
+  createdAt                DateTime              @default(now())
+  updatedAt                DateTime              @updatedAt
+
+  accountMgr              User?                    @relation("AccountManager", fields: [assignedAccountManagerId], references: [id])
+  parentClient            Client?                  @relation("ClientHierarchy", fields: [parentClientId], references: [id])
+  childClients            Client[]                 @relation("ClientHierarchy")
+  courtesyCallTier        CourtesyCallTier?        @relation(fields: [courtesyCallTierId], references: [id])
+  teamMembers             ClientTeamMember[]
+  contacts                ClientContact[]
+  projects                Project[]
+  meetings                Meeting[]
+  brds                    Brd[]
+  rfas                    Rfa[]
+  fitGaps                 FitGapAnalysis[]
+  processFlows            ProcessFlow[]
+  learnings               ProjectLearning[]
+  aiAppSessions           AiAppSession[]
+  csatSurveys             CsatSurvey[]
+  courtesyCallAssignments CourtesyCallAssignment[]
+  commsLogs               CommsLog[]
+  accountClosures         AccountClosure[]
+  milestoneLogs           MilestoneLog[]
+
+  @@map("clients")
+}
+
+model ClientTeamMember {
+  id        String    @id @default(uuid())
+  clientId  String
+  userId    String
+  role      String?
+  startDate DateTime  @default(now())
+  endDate   DateTime?
+
+  client Client @relation(fields: [clientId], references: [id])
+  user   User   @relation(fields: [userId], references: [id])
+
+  @@unique([clientId, userId])
+  @@map("client_team_members")
+}
+
+model ClientContact {
+  id          String      @id @default(uuid())
+  clientId    String
+  fullName    String
+  position    String?
+  department  String?
+  email       String?
+  mobile      String?
+  contactType ContactType @default(end_user_lead)
+  isPrimary   Boolean     @default(false)
+  isActive    Boolean     @default(true)
+  source      String?
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+
+  client          Client                   @relation(fields: [clientId], references: [id])
+  projectContacts ProjectExternalContact[]
+
+  @@map("client_contacts")
+}
+
+model Project {
+  id               String                @id @default(uuid())
+  clientId         String
+  projectName      String
+  projectType      ProjectType
+  templateId       String?
+  startDate        DateTime?
+  targetGoLiveDate DateTime?
+  actualGoLiveDate DateTime?
+  status           ProjectStatus         @default(draft)
+  phase            ProjectPhase          @default(pre_sales_handover)
+  lifecycleStage   String?               @default("onboarding")
+  priority         Priority              @default(medium)
+  assignedPmId     String?
+  estimatedManhours Int?
+  actualManhours   Int?
+  riskLevel        RiskLevel             @default(low)
+  riskNotes        String?
+  scopeDescription String?
+  tags             String[]
+  baselineSnapshot     Json?
+  templateVersionId    String?
+  planningStatus       PlanningStatus        @default(official)
+  projectedVisibility  Json?
+  createdById          String?
+  createdAt            DateTime              @default(now())
+  updatedAt            DateTime              @updatedAt
+
+  client            Client              @relation(fields: [clientId], references: [id])
+  pm                User?               @relation("ProjectPM", fields: [assignedPmId], references: [id])
+  teamMembers       ProjectTeamMember[]
+  externalContacts  ProjectExternalContact[]
+  tasks          Task[]
+  milestones     Milestone[]
+  meetings       Meeting[]
+  brds           Brd[]
+  rfas           Rfa[]
+  fitGaps        FitGapAnalysis[]
+  processFlows   ProcessFlow[]
+  learnings      ProjectLearning[]
+  riskItems      RiskItem[]
+  aiAppSessions  AiAppSession[]
+  csatSurveys    CsatSurvey[]
+  turnoverRecord TurnoverRecord?
+  commsLogs      CommsLog[]
+  milestoneLogs  MilestoneLog[]
+  portalTokens   ProjectPortalToken[]
+
+  @@map("projects")
+}
+
+model ProjectTeamMember {
+  id          String      @id @default(uuid())
+  projectId   String
+  userId      String
+  projectRole ProjectRole @default(project_support)
+  raciRoles   String      @default("R")
+  startDate   DateTime    @default(now())
+  endDate     DateTime?
+
+  project Project @relation(fields: [projectId], references: [id])
+  user    User    @relation(fields: [userId], references: [id])
+
+  @@unique([projectId, userId])
+  @@map("project_team_members")
+}
+
+model ProjectExternalContact {
+  id        String   @id @default(uuid())
+  projectId String
+  contactId String
+  raciRoles String   @default("I")
+  notes     String?
+  addedById String?
+  addedAt   DateTime @default(now())
+
+  project Project       @relation(fields: [projectId], references: [id])
+  contact ClientContact @relation(fields: [contactId], references: [id])
+
+  @@unique([projectId, contactId])
+  @@map("project_external_contacts")
+}
+
+model Milestone {
+  id          String        @id @default(uuid())
+  projectId   String
+  title       String
+  description String?
+  dueDate     DateTime?
+  completedAt DateTime?
+  phase       ProjectPhase?
+  status      String        @default("pending")
+
+  project Project @relation(fields: [projectId], references: [id])
+  tasks   Task[]
+
+  @@map("milestones")
+}
+
+model Task {
+  id                    String       @id @default(uuid())
+  projectId             String?
+  milestoneId           String?
+  rfaId                 String?
+  parentTaskId          String?
+  title                 String
+  description           String?
+  status                TaskStatus   @default(todo)
+  priority              Priority     @default(medium)
+  assignedToId          String?
+  createdById           String?
+  startDate             DateTime?
+  scheduledDate         DateTime?
+  dueDate               DateTime?
+  timeBlockStart        DateTime?
+  timeBlockEnd          DateTime?
+  estimatedHours        Decimal?
+  actualHours           Decimal?
+  sortOrder             Int          @default(0)
+  dependencyTaskIds     String[]
+  tags                  String[]
+  type                  TaskType     @default(implementation)
+  isExternal            Boolean      @default(false)
+  isRecurring           Boolean      @default(false)
+  recurrenceRule        String?
+  isMilestone           Boolean      @default(false)
+  milestoneType         MilestoneType?
+  linkedAppIds          String[]
+  communicationTriggerId String?
+  requiresApproval       Boolean              @default(false)
+  accountablePartyId     String?
+  accountablePartyType   AccountablePartyType?
+  depth                  Int                  @default(0)
+  createdAt              DateTime             @default(now())
+  updatedAt              DateTime             @updatedAt
+  taskRef                String?              @unique
+
+  meetingId             String?
+
+  project      Project?   @relation(fields: [projectId], references: [id])
+  milestone    Milestone? @relation(fields: [milestoneId], references: [id])
+  rfa          Rfa?       @relation(fields: [rfaId], references: [id])
+  meeting      Meeting?   @relation("MeetingTasks", fields: [meetingId], references: [id])
+  parentTask   Task?      @relation("TaskHierarchy", fields: [parentTaskId], references: [id])
+  subtaskList  Task[]     @relation("TaskHierarchy")
+  assignedTo   User?      @relation("TaskAssignee", fields: [assignedToId], references: [id])
+  createdBy    User?      @relation("TaskCreator", fields: [createdById], references: [id])
+  timeLogs     TimeLog[]
+  subtasks     Subtask[]
+  milestoneLogs MilestoneLog[]
+
+  @@map("tasks")
+}
+
+model Subtask {
+  id          String  @id @default(uuid())
+  taskId      String
+  title       String
+  isCompleted Boolean @default(false)
+
+  task Task @relation(fields: [taskId], references: [id])
+
+  @@map("subtasks")
+}
+
+model TimeLog {
+  id          String   @id @default(uuid())
+  taskId      String
+  userId      String
+  date        DateTime
+  hours       Decimal
+  description String?
+  createdAt   DateTime @default(now())
+
+  task Task @relation(fields: [taskId], references: [id])
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("time_logs")
+}
+
+model Rfa {
+  id                   String         @id @default(uuid())
+  projectId            String
+  clientId             String
+  requestType          RfaRequestType
+  title                String
+  description          String?
+  priority             Priority       @default(medium)
+  requestedById        String?
+  assignedApproverId   String?
+  slaDays              Int?
+  submittedAt          DateTime?
+  approvedById         String?
+  status               RfaStatus      @default(draft)
+  approvalNotes        String?
+  estimatedEffortHours Decimal?
+  actualManhours       Decimal?
+  turnaroundTimeDays   Int?
+  completionDate       DateTime?
+  tags                 String[]
+  createdAt            DateTime       @default(now())
+  updatedAt            DateTime       @updatedAt
+
+  project     Project      @relation(fields: [projectId], references: [id])
+  client      Client       @relation(fields: [clientId], references: [id])
+  requestedBy      User?        @relation("RfaRequester", fields: [requestedById], references: [id])
+  approvedBy       User?        @relation("RfaApprover", fields: [approvedById], references: [id])
+  assignedApprover User?        @relation("RfaAssignedApprover", fields: [assignedApproverId], references: [id])
+  tasks       Task[]
+  aiReview    RfaAiReview?
+  commsLogs   CommsLog[]
+
+  @@map("rfas")
+}
+
+model Meeting {
+  id                  String        @id @default(uuid())
+  clientId            String
+  projectId           String?
+  title               String
+  meetingType         MeetingType
+  meetingDate         DateTime
+  participants        Json?
+  recordingUrl        String?
+  transcriptRaw       String?
+  transcriptFormatted String?
+  aiSummary           String?
+  actionItems         Json?
+  decisions           Json?
+  painPoints          Json?
+  requirements        Json?
+  risksIdentified     Json?
+  followUpMeetingId   String?
+  status              MeetingStatus @default(scheduled)
+  createdById         String?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  client         Client           @relation(fields: [clientId], references: [id])
+  project        Project?         @relation(fields: [projectId], references: [id])
+  createdBy      User?            @relation(fields: [createdById], references: [id])
+  fitGaps        FitGapAnalysis[]
+  processFlows   ProcessFlow[]
+  turnoverRecord TurnoverRecord?
+  meetingTasks   Task[]           @relation("MeetingTasks")
+
+  @@map("meetings")
+}
+
+model Brd {
+  id                   String    @id @default(uuid())
+  projectId            String
+  clientId             String
+  version              String    @default("v1.0")
+  status               BrdStatus @default(draft)
+  title                String
+  createdById          String?
+  approvedById         String?
+  linkedMeetingIds     String[]
+  linkedFitGapId       String?
+  content              Json?
+  googleDocId          String?
+  googleDocUrl         String?
+  submittedForReviewAt DateTime?
+  approvedAt           DateTime?
+  createdAt            DateTime  @default(now())
+  updatedAt            DateTime  @updatedAt
+
+  project      Project         @relation(fields: [projectId], references: [id])
+  client       Client          @relation(fields: [clientId], references: [id])
+  createdBy    User?           @relation("BrdCreator", fields: [createdById], references: [id])
+  approvedBy   User?           @relation("BrdApprover", fields: [approvedById], references: [id])
+  fitGap       FitGapAnalysis? @relation(fields: [linkedFitGapId], references: [id])
+  processFlows ProcessFlow[]
+
+  @@map("brds")
+}
+
+model FitGapAnalysis {
+  id          String       @id @default(uuid())
+  projectId   String
+  clientId    String
+  meetingId   String?
+  status      FitGapStatus @default(draft)
+  createdById String?
+  rows        Json?
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+
+  project   Project  @relation(fields: [projectId], references: [id])
+  client    Client   @relation(fields: [clientId], references: [id])
+  meeting   Meeting? @relation(fields: [meetingId], references: [id])
+  createdBy User?    @relation(fields: [createdById], references: [id])
+  brds      Brd[]
+
+  @@map("fit_gap_analyses")
+}
+
+model ProcessFlow {
+  id                String          @id @default(uuid())
+  projectId         String
+  clientId          String
+  brdId             String?
+  meetingId         String?
+  title             String
+  description       String?
+  flowType          ProcessFlowType
+  generatedBy       String          @default("ai")
+  sourceText        String?
+  diagramDefinition String?
+  diagramSvgUrl     String?
+  status            String          @default("draft")
+  version           String          @default("v1.0")
+  createdById       String?
+  createdAt         DateTime        @default(now())
+  updatedAt         DateTime        @updatedAt
+
+  project Project  @relation(fields: [projectId], references: [id])
+  client  Client   @relation(fields: [clientId], references: [id])
+  brd     Brd?     @relation(fields: [brdId], references: [id])
+  meeting Meeting? @relation(fields: [meetingId], references: [id])
+
+  @@map("process_flows")
+}
+
+model KnowledgeBase {
+  id          String     @id @default(uuid())
+  title       String
+  category    KbCategory
+  content     String?
+  tags        String[]
+  productArea String?
+  version     String     @default("1.0")
+  ownerId     String?
+  status      KbStatus   @default(draft)
+  isAiIndexed Boolean    @default(false)
+  createdAt   DateTime   @default(now())
+  updatedAt   DateTime   @updatedAt
+
+  owner User? @relation(fields: [ownerId], references: [id])
+
+  @@map("knowledge_base")
+}
+
+model ProjectLearning {
+  id             String           @id @default(uuid())
+  projectId      String
+  clientId       String
+  category       LearningCategory
+  title          String
+  whatHappened   String?
+  rootCause      String?
+  resolution     String?
+  recommendation String?
+  impactLevel    ImpactLevel      @default(medium)
+  tags           String[]
+  createdById    String?
+  isAiIndexed    Boolean          @default(false)
+  createdAt      DateTime         @default(now())
+
+  project   Project @relation(fields: [projectId], references: [id])
+  client    Client  @relation(fields: [clientId], references: [id])
+  createdBy User?   @relation(fields: [createdById], references: [id])
+
+  @@map("project_learnings")
+}
+
+model RiskItem {
+  id             String   @id @default(uuid())
+  projectId      String
+  category       String
+  description    String
+  likelihood     String
+  impact         String
+  riskScore      Int?
+  mitigationPlan String?
+  ownerId        String?
+  status         String   @default("open")
+  createdAt      DateTime @default(now())
+
+  project Project @relation(fields: [projectId], references: [id])
+  owner   User?   @relation(fields: [ownerId], references: [id])
+
+  @@map("risk_items")
+}
+
+model AiApp {
+  id                  String        @id @default(uuid())
+  name                String
+  description         String?
+  icon                String?
+  category            AiAppCategory
+  status              AiAppStatus   @default(active)
+  requiredRoles       String[]
+  claudeMdInstruction String?
+  claudeMdVersion     String        @default("1.0.0")
+  steps               Json?
+  skillId             String?
+  knowledgeSources    Json?
+  outputFormat        String?
+  outputTemplateId    String?
+  postOutputActions   Json?
+  isSystemApp         Boolean       @default(false)
+  canBeDeleted        Boolean       @default(true)
+  // Sharing & authorship (user additions beyond V3 spec)
+  createdById         String?
+  sharedWith          String        @default("all")   // 'all' | 'team' | 'private'
+  disabledAt          DateTime?
+  disabledReason      String?
+  maxContextTokens    Int           @default(8000)
+  costThisMonth       Float         @default(0)
+  lastUsedAt          DateTime?
+  createdAt           DateTime      @default(now())
+  updatedAt           DateTime      @updatedAt
+
+  createdBy    User?          @relation("AiAppCreator", fields: [createdById], references: [id])
+  sessions     AiAppSession[]
+  shareGrants  AppShareGrant[]
+
+  @@map("ai_apps")
+}
+
+model AppShareGrant {
+  id          String   @id @default(uuid())
+  appId       String
+  userId      String
+  permission  String   @default("view_only")  // 'view_only' | 'edit'
+  grantedById String?
+  grantedAt   DateTime @default(now())
+
+  app       AiApp @relation(fields: [appId], references: [id], onDelete: Cascade)
+  user      User  @relation("ShareGrantUser", fields: [userId], references: [id])
+  grantedBy User? @relation("ShareGrantGranter", fields: [grantedById], references: [id])
+
+  @@unique([appId, userId])
+  @@map("app_share_grants")
+}
+
+model AiAppSession {
+  id        String   @id @default(uuid())
+  appId     String
+  userId    String
+  projectId String?
+  clientId  String?
+  taskId    String?
+  context   Json?
+  messages  Json?
+  output    String?
+  status    String   @default("active")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  app     AiApp    @relation(fields: [appId], references: [id])
+  user    User     @relation(fields: [userId], references: [id])
+  project Project? @relation(fields: [projectId], references: [id])
+  client  Client?  @relation(fields: [clientId], references: [id])
+
+  @@map("ai_app_sessions")
+}
+
+model AuditLog {
+  id          String      @id @default(uuid())
+  entityType  String
+  entityId    String
+  action      AuditAction
+  fieldName   String?
+  oldValue    Json?
+  newValue    Json?
+  performedBy String?
+  performedAt DateTime    @default(now())
+  ipAddress   String?
+  metadata    Json?
+
+  user User? @relation(fields: [performedBy], references: [id])
+
+  @@index([entityType, entityId])
+  @@index([performedBy])
+  @@map("audit_logs")
+}
+
+model Notification {
+  id         String   @id @default(uuid())
+  userId     String
+  title      String
+  body       String
+  type       String
+  entityType String?
+  entityId   String?
+  isRead     Boolean  @default(false)
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id])
+
+  @@map("notifications")
+}
+
+model Comment {
+  id          String   @id @default(uuid())
+  authorId    String
+  content     String
+  parentId    String?
+  entityType  String
+  entityId    String
+  reactions   Json?
+  editHistory Json?
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  author  User      @relation(fields: [authorId], references: [id])
+  parent  Comment?  @relation("CommentThread", fields: [parentId], references: [id])
+  replies Comment[] @relation("CommentThread")
+
+  @@index([entityType, entityId])
+  @@map("comments")
+}
+
+// ─── V1.9 NEW MODELS ─────────────────────────────────────────────────────────
+
+model CsatSurvey {
+  id                         String         @id @default(uuid())
+  surveyRef                  String         @unique
+  clientId                   String
+  projectId                  String?
+  surveyType                 CsatSurveyType
+  token                      String         @unique @default(uuid())
+  respondentEmail            String?
+  respondentName             String?
+  scoreAppAndDashboard       Int?
+  scoreImplementationManager Int?
+  scoreOverallRecommendation Int?
+  comments                   String?
+  respondedAt                DateTime?
+  reminderSentAt             DateTime?
+  createdById                String?
+  createdAt                  DateTime       @default(now())
+
+  client    Client   @relation(fields: [clientId], references: [id])
+  project   Project? @relation(fields: [projectId], references: [id])
+  createdBy User?    @relation(fields: [createdById], references: [id])
+
+  @@map("csat_surveys")
+}
+
+model CourtesyCallTier {
+  id             String  @id @default(uuid())
+  tierName       String
+  tierNumber     Int     @unique
+  callFrequency  String
+  callsPerPeriod Int
+  description    String?
+
+  assignments CourtesyCallAssignment[]
+  clients     Client[]
+
+  @@map("courtesy_call_tiers")
+}
+
+model CourtesyCallAssignment {
+  id                 String             @id @default(uuid())
+  clientId           String
+  assignedToId       String
+  tierId             String
+  targetMonth        DateTime
+  plannedCallCount   Int
+  completedCallCount Int                @default(0)
+  status             CourtesyCallStatus @default(pending)
+  notes              String?
+  createdAt          DateTime           @default(now())
+  updatedAt          DateTime           @updatedAt
+
+  client     Client           @relation(fields: [clientId], references: [id])
+  assignedTo User             @relation(fields: [assignedToId], references: [id])
+  tier       CourtesyCallTier @relation(fields: [tierId], references: [id])
+
+  @@unique([clientId, assignedToId, targetMonth])
+  @@map("courtesy_call_assignments")
+}
+
+model PhHoliday {
+  id              String      @id @default(uuid())
+  date            DateTime
+  localName       String
+  name            String
+  holidayType     HolidayType
+  year            Int
+  isAdminOverride Boolean     @default(false)
+  notes           String?
+
+  @@unique([date, holidayType])
+  @@index([year])
+  @@map("ph_holidays")
+}
+
+model TurnoverRecord {
+  id                     String    @id @default(uuid())
+  projectId              String    @unique
+  cstHandlerId           String?
+  cctReceiverId          String?
+  endorsementMeetingId   String?   @unique
+  slaDocumentUrl         String?
+  handoverDocUrl         String?
+  cctSignedOff           Boolean   @default(false)
+  cstSupervisorSignedOff Boolean   @default(false)
+  completedAt            DateTime?
+  checklistState         Json?
+  createdAt              DateTime  @default(now())
+  updatedAt              DateTime  @updatedAt
+
+  project            Project  @relation(fields: [projectId], references: [id])
+  cstHandler         User?    @relation("TurnoverCstHandler", fields: [cstHandlerId], references: [id])
+  cctReceiver        User?    @relation("TurnoverCctReceiver", fields: [cctReceiverId], references: [id])
+  endorsementMeeting Meeting? @relation(fields: [endorsementMeetingId], references: [id])
+
+  @@map("turnover_records")
+}
+
+model AccountClosure {
+  id                   String        @id @default(uuid())
+  closureRef           String        @unique
+  clientId             String
+  closureReason        ClosureReason
+  requestedById        String?
+  checklistState       Json?
+  outstandingBalance   Decimal?
+  managerApprovedById  String?
+  managerApprovedAt    DateTime?
+  financeApprovedById  String?
+  financeApprovedAt    DateTime?
+  ceoApprovedById      String?
+  ceoApprovedAt        DateTime?
+  closureDate          DateTime?
+  financeBlockedReason String?
+  notes                String?
+  createdAt            DateTime      @default(now())
+  updatedAt            DateTime      @updatedAt
+
+  client          Client @relation(fields: [clientId], references: [id])
+  requestedBy     User?  @relation("ClosureRequester", fields: [requestedById], references: [id])
+  managerApprover User?  @relation("ClosureManagerApprover", fields: [managerApprovedById], references: [id])
+  financeApprover User?  @relation("ClosureFinanceApprover", fields: [financeApprovedById], references: [id])
+  ceoApprover     User?  @relation("ClosureCeoApprover", fields: [ceoApprovedById], references: [id])
+
+  @@map("account_closures")
+}
+
+model AcquisitionPipeline {
+  id                      String     @id @default(uuid())
+  pipelineRef             String     @unique
+  companyName             String
+  dealStage               DealStage  @default(initial_contact)
+  probability             Int        @default(0)
+  estimatedGoLiveDate     DateTime?
+  targetCstAssignmentDate DateTime?
+  projectedAssignedToId   String?
+  requiresPoc             Boolean    @default(false)
+  pocDescription          String?
+  contactName             String?
+  contactEmail            String?
+  industry                String?
+  notes                   String?
+  convertedClientId       String?
+  createdById             String?
+  createdAt               DateTime   @default(now())
+  updatedAt               DateTime   @updatedAt
+
+  projectedAssignedTo User? @relation("PipelineProjectedAssignee", fields: [projectedAssignedToId], references: [id])
+  createdBy           User? @relation("PipelineCreator", fields: [createdById], references: [id])
+
+  @@map("acquisition_pipeline")
+}
+
+model NewsFeedEvent {
+  id             String        @id @default(uuid())
+  eventType      FeedEventType
+  entityType     String?
+  entityId       String?
+  actorId        String?
+  content        String?
+  metadata       Json?
+  reactions      Json?
+  visibility     String        @default("all")
+  isAnnouncement Boolean       @default(false)
+  createdAt      DateTime      @default(now())
+
+  actor User? @relation(fields: [actorId], references: [id])
+
+  @@index([createdAt])
+  @@index([eventType])
+  @@map("news_feed_events")
+}
+
+model KpiPeriod {
+  id          String          @id @default(uuid())
+  year        Int
+  month       Int
+  label       String
+  status      KpiPeriodStatus @default(open)
+  lockedAt    DateTime?
+  finalizedAt DateTime?
+  createdAt   DateTime        @default(now())
+
+  scorecardInstances KpiScorecardInstance[]
+  milestoneLogs      MilestoneLog[]
+  usageTargets       UsageTarget[]
+  usageActuals       UsageActual[]
+
+  @@unique([year, month])
+  @@map("kpi_periods")
+}
+
+model KpiScorecardTemplate {
+  id         String   @id @default(uuid())
+  name       String
+  targetRole UserRole
+  isDefault  Boolean  @default(false)
+  version    String   @default("1.0")
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  categories KpiCategory[]
+  instances  KpiScorecardInstance[]
+
+  @@map("kpi_scorecard_templates")
+}
+
+model KpiCategory {
+  id         String  @id @default(uuid())
+  templateId String
+  name       String
+  weight     Decimal
+  sortOrder  Int     @default(0)
+
+  template KpiScorecardTemplate @relation(fields: [templateId], references: [id])
+  metrics  KpiMetric[]
+
+  @@map("kpi_categories")
+}
+
+model KpiMetric {
+  id          String           @id @default(uuid())
+  categoryId  String
+  name        String
+  formula     KpiMetricFormula
+  weight      Decimal
+  target      Decimal?
+  description String?
+  sortOrder   Int              @default(0)
+
+  category     KpiCategory   @relation(fields: [categoryId], references: [id])
+  metricScores MetricScore[]
+
+  @@map("kpi_metrics")
+}
+
+model KpiScorecardInstance {
+  id         String          @id @default(uuid())
+  userId     String
+  periodId   String
+  templateId String
+  totalScore Decimal?
+  status     KpiPeriodStatus @default(open)
+  lastCalcAt DateTime?
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
+
+  user         User                 @relation(fields: [userId], references: [id])
+  period       KpiPeriod            @relation(fields: [periodId], references: [id])
+  template     KpiScorecardTemplate @relation(fields: [templateId], references: [id])
+  metricScores MetricScore[]
+
+  @@unique([userId, periodId])
+  @@map("kpi_scorecard_instances")
+}
+
+model MetricScore {
+  id            String   @id @default(uuid())
+  instanceId    String
+  metricId      String
+  rawScore      Decimal?
+  weightedScore Decimal?
+  detailRows    Json?
+  computedAt    DateTime @default(now())
+
+  instance KpiScorecardInstance @relation(fields: [instanceId], references: [id])
+  metric   KpiMetric            @relation(fields: [metricId], references: [id])
+
+  @@unique([instanceId, metricId])
+  @@map("metric_scores")
+}
+
+model MilestoneLog {
+  id            String        @id @default(uuid())
+  userId        String
+  taskId        String?
+  projectId     String?
+  clientId      String?
+  milestoneType MilestoneType
+  completedAt   DateTime
+  timeliness    String?
+  qualityScore  Decimal?
+  kpiPeriodId   String?
+  createdAt     DateTime      @default(now())
+
+  user      User       @relation(fields: [userId], references: [id])
+  task      Task?      @relation(fields: [taskId], references: [id])
+  project   Project?   @relation(fields: [projectId], references: [id])
+  client    Client?    @relation(fields: [clientId], references: [id])
+  kpiPeriod KpiPeriod? @relation(fields: [kpiPeriodId], references: [id])
+
+  @@map("milestone_logs")
+}
+
+model UsageTarget {
+  id               String   @id @default(uuid())
+  userId           String
+  periodId         String
+  fieldAppTarget   Int      @default(0)
+  managerAppTarget Int      @default(0)
+  createdById      String?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user   User      @relation(fields: [userId], references: [id])
+  period KpiPeriod @relation(fields: [periodId], references: [id])
+
+  @@unique([userId, periodId])
+  @@map("usage_targets")
+}
+
+model UsageActual {
+  id               String   @id @default(uuid())
+  userId           String
+  periodId         String
+  fieldAppActual   Int      @default(0)
+  managerAppActual Int      @default(0)
+  fieldResult      Decimal?
+  combinedResult   Decimal?
+  lastSyncedAt     DateTime?
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
+
+  user   User      @relation(fields: [userId], references: [id])
+  period KpiPeriod @relation(fields: [periodId], references: [id])
+
+  @@unique([userId, periodId])
+  @@map("usage_actuals")
+}
+
+model ScriptTemplate {
+  id           String   @id @default(uuid())
+  name         String
+  category     String
+  subject      String?
+  body         String
+  mergeFields  String[]
+  triggerEvent String?
+  isActive     Boolean  @default(true)
+  createdById  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  createdBy User? @relation(fields: [createdById], references: [id])
+
+  @@map("script_templates")
+}
+
+model AutomationRule {
+  id               String   @id @default(uuid())
+  name             String
+  triggerEvent     String
+  triggerCondition Json?
+  scriptTemplateId String?
+  targetRecipients Json?
+  delayMinutes     Int      @default(0)
+  isActive         Boolean  @default(true)
+  createdAt        DateTime @default(now())
+
+  @@map("automation_rules")
+}
+
+model CommsLog {
+  id               String   @id @default(uuid())
+  clientId         String
+  projectId        String?
+  rfaId            String?
+  sentById         String?
+  channel          String
+  subject          String?
+  body             String?
+  recipientEmail   String?
+  recipientName    String?
+  templateId       String?
+  automationRuleId String?
+  sentAt           DateTime @default(now())
+  openedAt         DateTime?
+  status           String   @default("sent")
+  metadata         Json?
+
+  client  Client   @relation(fields: [clientId], references: [id])
+  project Project? @relation(fields: [projectId], references: [id])
+  rfa     Rfa?     @relation(fields: [rfaId], references: [id])
+  sentBy  User?    @relation(fields: [sentById], references: [id])
+
+  @@map("comms_logs")
+}
+
+model RfaAiReview {
+  id                String             @id @default(uuid())
+  rfaId             String             @unique
+  summary           String?
+  assessment        Json?
+  grade             RfaAiReviewGrade?
+  completenessScore Decimal?
+  flags             String[]
+  precedentAnalysis String?
+  approverAgreement ApproverAgreement?
+  reviewedAt        DateTime?
+  approverReviewedAt DateTime?
+  createdAt         DateTime           @default(now())
+
+  rfa Rfa @relation(fields: [rfaId], references: [id])
+
+  @@map("rfa_ai_reviews")
+}
+
+model ProjectTemplate {
+  id               String         @id @default(uuid())
+  code             String
+  name             String
+  description      String?
+  projectType      ProjectType
+  totalHours       Decimal?
+  status           TemplateStatus @default(draft)
+  version          Int            @default(1)
+  parentTemplateId String?
+  publishedAt      DateTime?
+  publishedById    String?
+  isActive         Boolean        @default(true)
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  parentTemplate ProjectTemplate?  @relation("TemplateVersions", fields: [parentTemplateId], references: [id])
+  childVersions  ProjectTemplate[] @relation("TemplateVersions")
+  phases         ProjectTemplatePhase[]
+
+  @@unique([code, version])
+  @@map("project_templates")
+}
+
+model ProjectTemplatePhase {
+  id         String       @id @default(uuid())
+  templateId String
+  phase      ProjectPhase
+  sortOrder  Int          @default(0)
+  normDays   Int?
+  minDays    Int?
+  maxDays    Int?
+
+  template   ProjectTemplate           @relation(fields: [templateId], references: [id])
+  milestones ProjectTemplateMilestone[]
+
+  @@map("project_template_phases")
+}
+
+model ProjectTemplateMilestone {
+  id        String @id @default(uuid())
+  phaseId   String
+  title     String
+  sortOrder Int    @default(0)
+
+  phase        ProjectTemplatePhase @relation(fields: [phaseId], references: [id])
+  defaultTasks DefaultTask[]
+
+  @@map("project_template_milestones")
+}
+
+model DefaultTask {
+  id                    String       @id @default(uuid())
+  milestoneId           String
+  code                  String       @unique
+  title                 String
+  taskType              TaskType
+  estimatedHours        Decimal
+  assignedToProjectRole ProjectRole?
+  sortOrder             Int          @default(0)
+  linkedAppIds          String[]
+  description           String?
+  isMilestone           Boolean      @default(false)
+  isExternal            Boolean      @default(false)
+
+  milestone ProjectTemplateMilestone @relation(fields: [milestoneId], references: [id])
+
+  @@map("default_tasks")
+}
+
+model TimelineBaselineVersion {
+  id               String      @id @default(uuid())
+  projectType      ProjectType
+  versionLabel     String
+  isActive         Boolean     @default(false)
+  totalWorkingDays Int
+  minDays          Int
+  maxDays          Int
+  phaseNorms       Json
+  notes            String?
+  activatedAt      DateTime?
+  archivedAt       DateTime?
+  createdById      String?
+  createdAt        DateTime    @default(now())
+  updatedAt        DateTime    @updatedAt
+
+  @@map("timeline_baseline_versions")
+}
+
+// ── Custom Fields System ──────────────────────────────────────────────────────
+// Allows admins to define additional fields for any entity type at runtime.
+
+enum FieldType {
+  text
+  long_text
+  number
+  decimal
+  select
+  multi_select
+  date
+  boolean
+  url
+  email
+  phone
+}
+
+model CustomFieldDefinition {
+  id         String    @id @default(uuid())
+  entityType String    // "client" | "project" | "task" | "user"
+  label      String
+  fieldKey   String
+  fieldType  FieldType @default(text)
+  options    Json?     // [{ value: string, label: string, color: string }]
+  sortOrder  Int       @default(0)
+  isRequired Boolean   @default(false)
+  isVisible  Boolean   @default(true)
+  createdAt  DateTime  @default(now())
+  updatedAt  DateTime  @updatedAt
+
+  values CustomFieldValue[]
+
+  @@unique([entityType, fieldKey])
+  @@index([entityType])
+  @@map("custom_field_definitions")
+}
+
+model CustomFieldValue {
+  id        String   @id @default(uuid())
+  fieldId   String
+  entityId  String
+  value     Json?
+  updatedAt DateTime @updatedAt
+
+  field CustomFieldDefinition @relation(fields: [fieldId], references: [id], onDelete: Cascade)
+
+  @@unique([fieldId, entityId])
+  @@index([entityId])
+  @@map("custom_field_values")
+}
+
+model ProjectPortalToken {
+  id              String    @id @default(uuid())
+  projectId       String
+  token           String    @unique @default(uuid())
+  passcodeHash    String?
+  contactEmails   String[]
+  isActive        Boolean   @default(true)
+  expiresAt       DateTime?
+  accessLog       Json?
+  createdById     String?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
+
+  project   Project @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@index([token])
+  @@map("project_portal_tokens")
+}
+
+model StaffOnboarding {
+  id           String   @id @default(uuid())
+  userId       String
+  supervisorId String?
+  role         String
+  startDate    DateTime
+  targetDate   DateTime?
+  status       String   @default("in_progress")  // in_progress | completed | on_hold
+  checklist    Json     @default("[]")            // [{ id, title, done, doneAt }]
+  notes        String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  user       User  @relation("OnboardingUser", fields: [userId], references: [id])
+  supervisor User? @relation("OnboardingSupervisor", fields: [supervisorId], references: [id])
+
+  @@map("staff_onboarding")
+}
+
+model DepartmentGoal {
+  id           String   @id @default(uuid())
+  role         String
+  metric       String
+  target       Decimal
+  unit         String?
+  effectiveFrom DateTime @default(now())
+  notes        String?
+  createdById  String?
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("department_goals")
+}
