@@ -440,6 +440,13 @@ model User {
   aiAppsCreated          AiApp[]                  @relation("AiAppCreator")
   shareGrantsReceived    AppShareGrant[]          @relation("ShareGrantUser")
   shareGrantsGiven       AppShareGrant[]          @relation("ShareGrantGranter")
+  masterDataValuesCreated MasterDataValue[]       @relation("MasterDataValueCreator")
+  documentTemplatesUploaded DocumentTemplate[]   @relation("TemplateUploader")
+  documentTemplatesActivated DocumentTemplate[]  @relation("TemplateActivator")
+  chatMessagesSent       ChatMessage[]            @relation("ChatMessageSender")
+  chatReadStatuses       ChatReadStatus[]         @relation("ChatReadStatusUser")
+  skillsCreated          Skill[]                  @relation("SkillCreator")
+  skillsApproved         Skill[]                  @relation("SkillApprover")
 
   @@map("users")
 }
@@ -470,6 +477,7 @@ model Client {
   createdById              String?
   createdAt                DateTime              @default(now())
   updatedAt                DateTime              @updatedAt
+  deletedAt                DateTime?
 
   accountMgr              User?                    @relation("AccountManager", fields: [assignedAccountManagerId], references: [id])
   parentClient            Client?                  @relation("ClientHierarchy", fields: [parentClientId], references: [id])
@@ -1646,4 +1654,196 @@ model DepartmentGoal {
   updatedAt    DateTime @updatedAt
 
   @@map("department_goals")
+}
+
+// ─── MASTER DATA ─────────────────────────────────────────────────────────────
+
+model MasterDataGroup {
+  id          String   @id @default(uuid())
+  code        String   @unique  // e.g. "client_tier", "deal_stage"
+  label       String
+  description String?
+  isSystem    Boolean  @default(false)  // system groups cannot be deleted
+  fieldSchema Json?    // configurable logic field schema per group
+  sortOrder   Int      @default(0)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  values MasterDataValue[]
+
+  @@map("master_data_groups")
+}
+
+model MasterDataValue {
+  id        String   @id @default(uuid())
+  groupId   String
+  code      String              // immutable slug e.g. "vip", "tier_1"
+  label     String              // editable display name
+  color     String?             // hex color for badges
+  metadata  Json?               // configurable logic fields (cc_frequency, bau_hours, etc.)
+  isSystem  Boolean  @default(false)  // system values: code is locked
+  isActive  Boolean  @default(true)
+  sortOrder Int      @default(0)
+  createdById String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  group     MasterDataGroup @relation(fields: [groupId], references: [id], onDelete: Cascade)
+  createdBy User?           @relation("MasterDataValueCreator", fields: [createdById], references: [id])
+
+  @@unique([groupId, code])
+  @@index([groupId])
+  @@map("master_data_values")
+}
+
+// ─── DOCUMENT TEMPLATES ──────────────────────────────────────────────────────
+
+enum DocumentTemplateType {
+  pptx_recommendation
+  pptx_training
+  pptx_proposal
+  pptx_mom
+  pptx_general
+  gdoc_brd
+  gdoc_mom
+  gdoc_proposal
+  gdoc_kyc
+  gdoc_uat
+  gdoc_handover
+  gdoc_general
+}
+
+enum DocumentTemplateFormat {
+  pptx
+  google_doc
+}
+
+model DocumentTemplate {
+  id                  String                 @id @default(uuid())
+  templateType        DocumentTemplateType
+  name                String
+  versionNumber       Int                    @default(1)
+  versionLabel        String
+  format              DocumentTemplateFormat
+  fileUrl             String?                // Cloud Storage URL for PPTX
+  googleDocTemplateId String?                // Google Drive template ID
+  googleDocTemplateUrl String?
+  thumbnailUrl        String?
+  isActive            Boolean                @default(false)
+  notes               String?
+  changeSummary       String?
+  uploadedById        String
+  activatedAt         DateTime?
+  activatedById       String?
+  createdAt           DateTime               @default(now())
+  updatedAt           DateTime               @updatedAt
+  deletedAt           DateTime?
+
+  uploadedBy  User  @relation("TemplateUploader", fields: [uploadedById], references: [id])
+  activatedBy User? @relation("TemplateActivator", fields: [activatedById], references: [id])
+
+  @@index([templateType, isActive])
+  @@map("document_templates")
+}
+
+// ─── TEAM CHAT ────────────────────────────────────────────────────────────────
+
+enum ChatConversationType {
+  direct
+  group
+}
+
+model ChatConversation {
+  id          String               @id @default(uuid())
+  type        ChatConversationType @default(direct)
+  name        String?              // for group chats
+  participantIds String[]          // user IDs
+  createdById String?
+  createdAt   DateTime             @default(now())
+  updatedAt   DateTime             @updatedAt
+
+  messages  ChatMessage[]
+  readStatus ChatReadStatus[]
+
+  @@map("chat_conversations")
+}
+
+model ChatMessage {
+  id             String   @id @default(uuid())
+  conversationId String
+  senderId       String
+  body           String
+  attachments    Json?    // [{file_url, filename, file_type}]
+  replyToId      String?
+  editedAt       DateTime?
+  deletedAt      DateTime?
+  createdAt      DateTime @default(now())
+
+  conversation ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  sender       User             @relation("ChatMessageSender", fields: [senderId], references: [id])
+  replyTo      ChatMessage?     @relation("ChatReply", fields: [replyToId], references: [id])
+  replies      ChatMessage[]    @relation("ChatReply")
+
+  @@index([conversationId, createdAt])
+  @@map("chat_messages")
+}
+
+model ChatReadStatus {
+  id             String   @id @default(uuid())
+  conversationId String
+  userId         String
+  lastReadAt     DateTime @default(now())
+
+  conversation ChatConversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  user         User             @relation("ChatReadStatusUser", fields: [userId], references: [id])
+
+  @@unique([conversationId, userId])
+  @@map("chat_read_status")
+}
+
+// ─── SKILLS ───────────────────────────────────────────────────────────────────
+
+enum SkillCategory {
+  data_entry
+  scheduling
+  communication
+  reporting
+  analysis
+  document_generation
+  other
+}
+
+enum SkillPublishScope {
+  personal
+  draft_for_team
+  team
+}
+
+model Skill {
+  id              String            @id @default(uuid())
+  skillCode       String            @unique
+  name            String
+  description     String?
+  category        SkillCategory     @default(other)
+  icon            String?
+  inputContract   Json?             // [{name, type, description, required}]
+  outputContract  String?           // text | list | structured | record | document
+  allowedTools    String[]          // agent data tool names
+  examplePrompts  String[]
+  claudeMd        String?
+  voiceEnabled    Boolean           @default(false)
+  isSystemSkill   Boolean           @default(false)
+  isActive        Boolean           @default(true)
+  publishScope    SkillPublishScope @default(personal)
+  createdById     String?
+  approvedById    String?
+  approvedAt      DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+  deletedAt       DateTime?
+
+  createdBy  User? @relation("SkillCreator", fields: [createdById], references: [id])
+  approvedBy User? @relation("SkillApprover", fields: [approvedById], references: [id])
+
+  @@map("skills")
 }

@@ -485,6 +485,426 @@ async function main() {
   }
   console.log('✅ Script templates (5 templates)');
 
+  // ── Master Data Groups & Values ───────────────────────────────────────────
+
+  // client_tier
+  const clientTierGroup = await prisma.masterDataGroup.upsert({
+    where: { code: 'client_tier' },
+    create: { code: 'client_tier', label: 'Client Tier', description: 'Client segmentation tier', isSystem: true, sortOrder: 0 },
+    update: {},
+  });
+  const clientTierValues = [
+    { code: 'enterprise', label: 'Enterprise', color: 'blue', sortOrder: 0, metadata: { cc_frequency: 'monthly', bau_hours_per_month: 20, monthly_csat_required: true } },
+    { code: 'premium', label: 'Premium', color: 'violet', sortOrder: 1, metadata: { cc_frequency: 'bi-monthly', bau_hours_per_month: 10, monthly_csat_required: false } },
+    { code: 'standard', label: 'Standard', color: 'gray', sortOrder: 2, metadata: { cc_frequency: 'quarterly', bau_hours_per_month: 5, monthly_csat_required: false } },
+  ];
+  for (const v of clientTierValues) {
+    await prisma.masterDataValue.upsert({
+      where: { groupId_code: { groupId: clientTierGroup.id, code: v.code } },
+      create: { groupId: clientTierGroup.id, ...v, isSystem: true },
+      update: { label: v.label, color: v.color, metadata: v.metadata },
+    });
+  }
+
+  // deal_stage
+  const dealStageGroup = await prisma.masterDataGroup.upsert({
+    where: { code: 'deal_stage' },
+    create: { code: 'deal_stage', label: 'Deal Stage', description: 'Sales pipeline stage', isSystem: true, sortOrder: 1 },
+    update: {},
+  });
+  const dealStageValues = [
+    { code: 'prospect', label: 'Prospect', color: 'gray', sortOrder: 0 },
+    { code: 'qualified', label: 'Qualified', color: 'blue', sortOrder: 1 },
+    { code: 'proposal_sent', label: 'Proposal Sent', color: 'yellow', sortOrder: 2 },
+    { code: 'negotiation', label: 'Negotiation', color: 'orange', sortOrder: 3 },
+    { code: 'onboarding', label: 'Onboarding', color: 'violet', sortOrder: 4 },
+    { code: 'won', label: 'Won', color: 'green', sortOrder: 5 },
+    { code: 'lost', label: 'Lost', color: 'red', sortOrder: 6 },
+  ];
+  for (const v of dealStageValues) {
+    await prisma.masterDataValue.upsert({
+      where: { groupId_code: { groupId: dealStageGroup.id, code: v.code } },
+      create: { groupId: dealStageGroup.id, ...v, isSystem: true },
+      update: { label: v.label, color: v.color },
+    });
+  }
+
+  // project_type
+  const projectTypeGroup = await prisma.masterDataGroup.upsert({
+    where: { code: 'project_type' },
+    create: { code: 'project_type', label: 'Project Type', description: 'Type of project engagement', isSystem: true, sortOrder: 2 },
+    update: {},
+  });
+  const projectTypeValues = [
+    { code: 'implementation', label: 'Implementation', color: 'blue', sortOrder: 0, metadata: { standard_wdays: { kickoff: 3, requirements: 10, build: 30, uat: 14, go_live: 3, hypercare: 14 } } },
+    { code: 'enhancement', label: 'Enhancement', color: 'violet', sortOrder: 1, metadata: { standard_wdays: { kickoff: 1, requirements: 5, build: 14, uat: 7, go_live: 1, hypercare: 7 } } },
+    { code: 'data_migration', label: 'Data Migration', color: 'orange', sortOrder: 2 },
+    { code: 'integration', label: 'Integration', color: 'yellow', sortOrder: 3 },
+  ];
+  for (const v of projectTypeValues) {
+    await prisma.masterDataValue.upsert({
+      where: { groupId_code: { groupId: projectTypeGroup.id, code: v.code } },
+      create: { groupId: projectTypeGroup.id, ...v, isSystem: true },
+      update: { label: v.label, color: v.color, metadata: (v as any).metadata },
+    });
+  }
+
+  // lifecycle_stage
+  const lifecycleStageGroup = await prisma.masterDataGroup.upsert({
+    where: { code: 'lifecycle_stage' },
+    create: { code: 'lifecycle_stage', label: 'Lifecycle Stage', description: 'Client account lifecycle stage', isSystem: true, sortOrder: 3 },
+    update: {},
+  });
+  const lifecycleStageValues = [
+    { code: 'onboarding', label: 'Onboarding', color: 'blue', sortOrder: 0 },
+    { code: 'active', label: 'Active', color: 'green', sortOrder: 1 },
+    { code: 'at_risk', label: 'At Risk', color: 'red', sortOrder: 2 },
+    { code: 'churned', label: 'Churned', color: 'gray', sortOrder: 3 },
+    { code: 'up_for_renewal', label: 'Up for Renewal', color: 'yellow', sortOrder: 4 },
+  ];
+  for (const v of lifecycleStageValues) {
+    await prisma.masterDataValue.upsert({
+      where: { groupId_code: { groupId: lifecycleStageGroup.id, code: v.code } },
+      create: { groupId: lifecycleStageGroup.id, ...v, isSystem: true },
+      update: { label: v.label, color: v.color },
+    });
+  }
+
+  // task_priority
+  const taskPriorityGroup = await prisma.masterDataGroup.upsert({
+    where: { code: 'task_priority' },
+    create: { code: 'task_priority', label: 'Task Priority', description: 'Task priority levels', isSystem: true, sortOrder: 4 },
+    update: {},
+  });
+  const taskPriorityValues = [
+    { code: 'critical', label: 'Critical', color: 'red', sortOrder: 0 },
+    { code: 'high', label: 'High', color: 'orange', sortOrder: 1 },
+    { code: 'medium', label: 'Medium', color: 'yellow', sortOrder: 2 },
+    { code: 'low', label: 'Low', color: 'gray', sortOrder: 3 },
+  ];
+  for (const v of taskPriorityValues) {
+    await prisma.masterDataValue.upsert({
+      where: { groupId_code: { groupId: taskPriorityGroup.id, code: v.code } },
+      create: { groupId: taskPriorityGroup.id, ...v, isSystem: true },
+      update: { label: v.label, color: v.color },
+    });
+  }
+
+  // meeting_type
+  const meetingTypeGroup = await prisma.masterDataGroup.upsert({
+    where: { code: 'meeting_type' },
+    create: { code: 'meeting_type', label: 'Meeting Type', description: 'Types of client meetings', isSystem: true, sortOrder: 5 },
+    update: {},
+  });
+  const meetingTypeValues = [
+    { code: 'courtesy_call', label: 'Courtesy Call', color: 'blue', sortOrder: 0 },
+    { code: 'kickoff', label: 'Kickoff', color: 'green', sortOrder: 1 },
+    { code: 'uat_walkthrough', label: 'UAT Walkthrough', color: 'violet', sortOrder: 2 },
+    { code: 'internal_sync', label: 'Internal Sync', color: 'gray', sortOrder: 3 },
+    { code: 'go_live', label: 'Go Live', color: 'green', sortOrder: 4 },
+    { code: 'training', label: 'Training', color: 'yellow', sortOrder: 5 },
+  ];
+  for (const v of meetingTypeValues) {
+    await prisma.masterDataValue.upsert({
+      where: { groupId_code: { groupId: meetingTypeGroup.id, code: v.code } },
+      create: { groupId: meetingTypeGroup.id, ...v, isSystem: true },
+      update: { label: v.label, color: v.color },
+    });
+  }
+
+  // rfa_type
+  const rfaTypeGroup = await prisma.masterDataGroup.upsert({
+    where: { code: 'rfa_type' },
+    create: { code: 'rfa_type', label: 'RFA Type', description: 'Types of Request for Action', isSystem: true, sortOrder: 6 },
+    update: {},
+  });
+  const rfaTypeValues = [
+    { code: 'change_request', label: 'Change Request', color: 'orange', sortOrder: 0 },
+    { code: 'bug_report', label: 'Bug Report', color: 'red', sortOrder: 1 },
+    { code: 'data_fix', label: 'Data Fix', color: 'yellow', sortOrder: 2 },
+    { code: 'new_requirement', label: 'New Requirement', color: 'blue', sortOrder: 3 },
+    { code: 'integration_request', label: 'Integration Request', color: 'violet', sortOrder: 4 },
+  ];
+  for (const v of rfaTypeValues) {
+    await prisma.masterDataValue.upsert({
+      where: { groupId_code: { groupId: rfaTypeGroup.id, code: v.code } },
+      create: { groupId: rfaTypeGroup.id, ...v, isSystem: true },
+      update: { label: v.label, color: v.color },
+    });
+  }
+
+  // industry
+  const industryGroup = await prisma.masterDataGroup.upsert({
+    where: { code: 'industry' },
+    create: { code: 'industry', label: 'Industry', description: 'Client industry classification', isSystem: true, sortOrder: 7 },
+    update: {},
+  });
+  const industryValues = [
+    { code: 'retail', label: 'Retail', color: 'blue', sortOrder: 0 },
+    { code: 'fmcg', label: 'FMCG', color: 'green', sortOrder: 1 },
+    { code: 'distribution', label: 'Distribution', color: 'yellow', sortOrder: 2 },
+    { code: 'manufacturing', label: 'Manufacturing', color: 'orange', sortOrder: 3 },
+    { code: 'services', label: 'Services', color: 'gray', sortOrder: 4 },
+    { code: 'fintech', label: 'Fintech', color: 'violet', sortOrder: 5 },
+  ];
+  for (const v of industryValues) {
+    await prisma.masterDataValue.upsert({
+      where: { groupId_code: { groupId: industryGroup.id, code: v.code } },
+      create: { groupId: industryGroup.id, ...v, isSystem: true },
+      update: { label: v.label, color: v.color },
+    });
+  }
+
+  console.log('✅ Master Data Groups & Values (8 groups)');
+
+  // ── AI Apps v2 (upsert by skillId) ────────────────────────────────────────
+  const aiAppsV2 = [
+    {
+      skillId: 'brd-maker',
+      name: 'BRD Maker',
+      description: 'Generate a Business Requirements Document collaboratively using project context.',
+      icon: '📄',
+      category: 'document_generation' as const,
+      claudeMdInstruction: "# BRD Maker\nYou are an expert BRD writer for MobileOptima's CST. Use project context to pre-fill sections. Walk through each section collaboratively. Output: Executive Summary, Project Background, Stakeholders, Scope, Current State, Future State, Functional Requirements, Non-Functional Requirements, Assumptions & Constraints, Appendix.",
+      steps: ['Project Overview', 'Stakeholders & Scope', 'Current Process', 'Requirements Gathering', 'Gap Analysis', 'BRD Draft & Review'],
+      requiredRoles: ['sr_business_analyst', 'jr_business_analyst', 'supervisor', 'manager'],
+      isSystemApp: true,
+      canBeDeleted: false,
+    },
+    {
+      skillId: 'timeline-maker',
+      name: 'Timeline Maker',
+      description: 'Calculate project phase dates based on project type and working day norms.',
+      icon: '📅',
+      category: 'planning' as const,
+      claudeMdInstruction: "# Timeline Maker\nCalculate project phase dates based on project type and working day norms. Exclude PH holidays and weekends. Phases: Kickoff → Requirements → Build/Config → UAT → Go-Live → Hypercare. Output as a phase table.",
+      steps: ['Project Type & Constraints', 'Phase Date Calculation', 'Milestone Mapping', 'Timeline Review'],
+      requiredRoles: ['sr_business_analyst', 'jr_business_analyst', 'supervisor', 'manager'],
+      isSystemApp: false,
+      canBeDeleted: true,
+    },
+    {
+      skillId: 'fit-gap-analyzer',
+      name: 'Fit-Gap Analyzer',
+      description: 'Analyze requirements against Tarkie capabilities and output a structured fit-gap table',
+      icon: '🔍',
+      category: 'analysis' as const,
+      claudeMdInstruction: "# Fit-Gap Analyzer\nAnalyze client requirements vs Tarkie capabilities. Classify each as Fit/Partial Fit/Gap. For each Gap, draft an RFA. Output: Fit-Gap matrix table + RFA drafts + risk summary.",
+      steps: ['Client Requirements Upload', 'Tarkie Capability Mapping', 'Gap Identification', 'Risk Assessment', 'RFA Draft Creation', 'Summary Report'],
+      requiredRoles: ['sr_business_analyst', 'jr_business_analyst', 'supervisor'],
+      isSystemApp: true,
+      canBeDeleted: false,
+    },
+    {
+      skillId: 'kickoff-questionnaire-generator',
+      name: 'Kickoff Questionnaire Generator',
+      description: 'Generate tailored kickoff questionnaires based on client industry and tier.',
+      icon: '❓',
+      category: 'document_generation' as const,
+      claudeMdInstruction: "# Kickoff Questionnaire Generator\nGenerate tailored kickoff questionnaires. Sections: Company Background, Current Process, Data & Integration, Users & Access, Timeline & Go-Live. Tailor to client industry and tier.",
+      steps: ['Project Context Review', 'Questionnaire Generation', 'Review & Edit', 'Export'],
+      requiredRoles: ['sr_business_analyst', 'jr_business_analyst', 'supervisor'],
+      isSystemApp: false,
+      canBeDeleted: true,
+    },
+    {
+      skillId: 'process-flow-generator',
+      name: 'Process Flow Generator',
+      description: 'Convert business process descriptions into Mermaid.js flowchart diagrams.',
+      icon: '🔄',
+      category: 'document_generation' as const,
+      claudeMdInstruction: "# Process Flow Generator\nConvert business process descriptions into Mermaid.js flowchart diagrams. Use flowchart TD format. Include subgraphs for different actors. Always output valid Mermaid syntax.",
+      steps: ['Process Description', 'Flow Mapping', 'Mermaid Diagram', 'Review & Export'],
+      requiredRoles: ['sr_business_analyst', 'jr_business_analyst', 'supervisor'],
+      isSystemApp: false,
+      canBeDeleted: true,
+    },
+    {
+      skillId: 'recommendation-deck-generator',
+      name: 'Recommendation Deck Generator',
+      description: 'Generate fit-gap recommendation presentation for client approval',
+      icon: '📊',
+      category: 'document_generation' as const,
+      claudeMdInstruction: "# Recommendation Deck Generator\nCreate professional recommendation decks. Slide structure: Title, Executive Summary, Current State (3 slides), Findings (3 slides), Recommendations (3 slides), Action Plan table, Next Steps.",
+      steps: ['Executive Summary', 'Current State Analysis', 'Findings & Observations', 'Recommendations', 'Action Plan', 'Deck Review'],
+      requiredRoles: ['sr_business_analyst', 'supervisor'],
+      isSystemApp: false,
+      canBeDeleted: true,
+    },
+    {
+      skillId: 'uat-guide-generator',
+      name: 'UAT Document Generator',
+      description: 'Generate a structured UAT test script and sign-off document based on BRD and project configuration.',
+      icon: '✅',
+      category: 'validation' as const,
+      claudeMdInstruction: "# UAT Document Generator\nGenerate UAT test scripts and sign-off documents. Test cases per module: ID, Description, Pre-conditions, Steps, Expected Result, Actual Result (blank), Pass/Fail (blank). Include sign-off page.",
+      steps: ['Scope Definition', 'Test Case Generation', 'Sign-Off Template', 'Review & Export'],
+      requiredRoles: ['sr_business_analyst', 'jr_business_analyst', 'supervisor'],
+      isSystemApp: false,
+      canBeDeleted: true,
+    },
+    {
+      skillId: 'training-deck-generator',
+      name: 'Training Deck Generator',
+      description: 'Create training presentation slides for client end-user training',
+      icon: '🎓',
+      category: 'document_generation' as const,
+      claudeMdInstruction: "# Training Deck Generator\nCreate end-user training materials for Tarkie modules. Tailor to audience level (power user/standard/manager). Per module: Overview, Navigation, Key Workflows, Tips, Common Mistakes, Practice Exercise.",
+      steps: ['Module Selection', 'Audience & Level', 'Content Outline', 'Slide Content', 'Review & Export'],
+      requiredRoles: ['sr_business_analyst', 'jr_business_analyst', 'supervisor'],
+      isSystemApp: false,
+      canBeDeleted: true,
+    },
+    {
+      skillId: 'data-validation-tool',
+      name: 'Data Validation Tool',
+      description: 'Validate client master data files for Tarkie import readiness.',
+      icon: '🗃️',
+      category: 'validation' as const,
+      claudeMdInstruction: "# Data Validation Tool\nValidate client master data files for Tarkie import readiness. Check required fields, code values vs master data, date formats (YYYY-MM-DD), numeric formats. Output: error table + summary stats + top 5 common errors.",
+      steps: ['Data Upload', 'Validation Rules', 'Error Report', 'Correction Guidance'],
+      requiredRoles: ['sr_business_analyst', 'jr_business_analyst', 'supervisor'],
+      isSystemApp: false,
+      canBeDeleted: true,
+    },
+    {
+      skillId: 'kyc-generator',
+      name: 'KYC Form Generator',
+      description: 'Generate a structured Know Your Client document from initial client data',
+      icon: '📋',
+      category: 'document_generation' as const,
+      claudeMdInstruction: "# KYC Form Generator\nGenerate Know Your Client forms. Sections: Company Information, Key Contacts, Business Operations, Financial Profile, IT Infrastructure, Tarkie Requirements. Tailor to client industry. Output as fillable form structure.",
+      steps: ['Client Profile Review', 'KYC Form Generation', 'Review & Edit', 'Export'],
+      requiredRoles: ['sr_business_analyst', 'jr_business_analyst', 'supervisor'],
+      isSystemApp: false,
+      canBeDeleted: true,
+    },
+    {
+      skillId: 'meeting-summarizer',
+      name: 'Meeting MOM Generator',
+      description: 'Extract Minutes of Meeting, action items, decisions, and pain points from transcripts',
+      icon: '📝',
+      category: 'document_generation' as const,
+      claudeMdInstruction: "# Meeting MOM Generator\nGenerate Minutes of Meeting from transcripts. Extract decisions, action items (with owner + due date), issues raised. Output: MOM Header, Agenda Items, Decisions (bulleted), Action Items table, Issues, Next Meeting.",
+      steps: ['Meeting Context', 'Transcript Processing', 'MOM Draft', 'Review & Send'],
+      requiredRoles: ['sr_business_analyst', 'jr_business_analyst', 'supervisor', 'manager'],
+      isSystemApp: true,
+      canBeDeleted: false,
+    },
+    {
+      skillId: 'mockup-generator',
+      name: 'Mockup Generator',
+      description: 'Generate UI mockup specifications based on Tarkie design system (design.md)',
+      icon: '🎨',
+      category: 'design' as const,
+      claudeMdInstruction: "# Mockup Generator\nCreate UI mockup descriptions for Tarkie screens. Per screen: layout description, key UI elements, sample data using client-specific examples, navigation flows. Output as ASCII wireframes + descriptive text.",
+      steps: ['Screen Identification', 'Layout Description', 'Content Specification', 'Review & Export'],
+      requiredRoles: ['sr_business_analyst', 'supervisor'],
+      isSystemApp: false,
+      canBeDeleted: true,
+    },
+  ];
+
+  for (const app of aiAppsV2) {
+    const existing = await prisma.aiApp.findFirst({ where: { skillId: app.skillId } });
+    if (existing) {
+      await prisma.aiApp.update({
+        where: { id: existing.id },
+        data: {
+          name: app.name,
+          description: app.description,
+          icon: app.icon,
+          category: app.category,
+          claudeMdInstruction: app.claudeMdInstruction,
+          steps: app.steps,
+          requiredRoles: app.requiredRoles,
+          isSystemApp: app.isSystemApp,
+          canBeDeleted: app.canBeDeleted,
+        },
+      });
+    } else {
+      await prisma.aiApp.create({ data: app });
+    }
+  }
+  console.log('✅ AI Apps v2 (12 apps upserted)');
+
+  // ── Skills ────────────────────────────────────────────────────────────────
+  const skills = [
+    {
+      skillCode: 'system-record-populator',
+      name: 'System Record Populator',
+      category: 'data_entry' as const,
+      voiceEnabled: true,
+      allowedTools: ['create_task', 'update_task_status', 'create_timelog'],
+      publishScope: 'team' as const,
+      isSystemSkill: true,
+      isActive: true,
+      claudeMd: "# System Record Populator\nHelp create/update records through conversation. Ask for required fields one at a time. Validate inputs. Confirm before creating. Show summary of what was created. Support voice input.",
+    },
+    {
+      skillCode: 'calendar-meeting-scheduler',
+      name: 'Calendar & Meeting Scheduler',
+      category: 'scheduling' as const,
+      voiceEnabled: true,
+      allowedTools: ['get_meeting', 'get_project', 'get_client'],
+      publishScope: 'team' as const,
+      isSystemSkill: true,
+      isActive: true,
+      claudeMd: "# Calendar & Meeting Scheduler\nSchedule meetings via natural language. Understand date/time expressions. Ask for: type, attendees, platform, agenda. Confirm before creating. Voice-friendly confirmations.",
+    },
+    {
+      skillCode: 'smart-query',
+      name: 'Smart Query',
+      category: 'reporting' as const,
+      voiceEnabled: true,
+      allowedTools: ['get_client', 'get_project', 'list_clients', 'list_projects', 'list_tasks'],
+      publishScope: 'team' as const,
+      isSystemSkill: true,
+      isActive: true,
+      claudeMd: "# Smart Query\nAnswer questions about CST OS data in natural language. Call appropriate data tools. Present results as tables or bullets. Ask one clarifying question for ambiguous queries.",
+    },
+    {
+      skillCode: 'email-drafter',
+      name: 'Email Drafter',
+      category: 'communication' as const,
+      voiceEnabled: false,
+      allowedTools: ['get_client', 'get_project'],
+      publishScope: 'team' as const,
+      isSystemSkill: true,
+      isActive: true,
+      claudeMd: "# Email Drafter\nDraft professional emails for client communication. Ask: recipient, purpose, tone. Use client context if available. Output: subject line + full email body. Offer to adjust tone or length.",
+    },
+    {
+      skillCode: 'health-score-analyzer',
+      name: 'Health Score Analyzer',
+      category: 'analysis' as const,
+      voiceEnabled: false,
+      allowedTools: ['get_client', 'list_projects'],
+      publishScope: 'team' as const,
+      isSystemSkill: true,
+      isActive: true,
+      claudeMd: "# Health Score Analyzer\nAnalyze client health scores and recommend improvements. Break down: CSAT, CC compliance, KYC status, project progress, engagement. Output: Score Breakdown → Risk Factors → Recommended Actions (3-5 specific steps).",
+    },
+  ];
+
+  for (const skill of skills) {
+    await prisma.skill.upsert({
+      where: { skillCode: skill.skillCode },
+      create: skill,
+      update: {
+        name: skill.name,
+        category: skill.category,
+        voiceEnabled: skill.voiceEnabled,
+        allowedTools: skill.allowedTools,
+        publishScope: skill.publishScope,
+        isSystemSkill: skill.isSystemSkill,
+        isActive: skill.isActive,
+        claudeMd: skill.claudeMd,
+      },
+    });
+  }
+  console.log('✅ Skills (5 skills upserted)');
+
   console.log('\n🎉 Seed complete!');
 }
 

@@ -24,6 +24,7 @@ import { PipelineModule } from './modules/pipeline/pipeline.module';
 import { WorkforceModule } from './modules/workforce/workforce.module';
 import { KnowledgeBaseModule } from './modules/knowledge-base/knowledge-base.module';
 import { LearningsModule } from './modules/learnings/learnings.module';
+import { AgentModule } from './shared/services/agent/agent.module';
 import { JwtAuthGuard } from './modules/auth/guards/jwt-auth.guard';
 import { RolesGuard } from './modules/auth/guards/roles.guard';
 
@@ -51,6 +52,7 @@ import { RolesGuard } from './modules/auth/guards/roles.guard';
     WorkforceModule,
     KnowledgeBaseModule,
     LearningsModule,
+    AgentModule,
   ],
   controllers: [AppController],
   providers: [
