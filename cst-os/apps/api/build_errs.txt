@@ -1,0 +1,11 @@
+src/shared/services/agent/agent-context.builder.ts(27,32): error TS2339: Property 'contextType' does not exist on type 'AiAppContext'.
+src/shared/services/agent/agent-context.builder.ts(29,21): error TS2339: Property 'contextType' does not exist on type 'AiAppContext'.
+src/shared/services/agent/agent-context.builder.ts(30,40): error TS2352: Conversion of type 'ClientContext' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Index signature for type 'string' is missing in type 'ClientContext'.
+src/shared/services/agent/agent-context.builder.ts(31,40): error TS2352: Conversion of type 'ProjectContext' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Index signature for type 'string' is missing in type 'ProjectContext'.
+src/shared/services/agent/agent-context.builder.ts(32,40): error TS2352: Conversion of type 'TaskContext' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Index signature for type 'string' is missing in type 'TaskContext'.
+src/shared/services/agent/agent-context.builder.ts(33,40): error TS2352: Conversion of type 'MeetingContext' to type 'Record<string, unknown>' may be a mistake because neither type sufficiently overlaps with the other. If this was intentional, convert the expression to 'unknown' first.
+  Index signature for type 'string' is missing in type 'MeetingContext'.
+src/shared/services/agent/agent-context.builder.ts(39,58): error TS2339: Property 'contextType' does not exist on type 'AiAppContext'.

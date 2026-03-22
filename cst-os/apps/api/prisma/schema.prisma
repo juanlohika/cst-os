@@ -1847,3 +1847,11 @@ model Skill {
 
   @@map("skills")
 }
+
+model SystemSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+
+  @@map("system_settings")
+}

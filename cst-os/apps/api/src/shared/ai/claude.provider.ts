@@ -2,27 +2,39 @@ import Anthropic from '@anthropic-ai/sdk';
 import { Injectable } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { AiService, AiChatOptions, AiChatResponse } from './ai.service';
+import { SystemSettingsService } from '../../modules/system-settings/system-settings.service';
 
 @Injectable()
 export class ClaudeProvider extends AiService {
-  private client: Anthropic;
   private defaultModel = 'claude-sonnet-4-6';
 
-  constructor(private config: ConfigService) {
+  constructor(
+    private config: ConfigService,
+    private settings: SystemSettingsService
+  ) {
     super();
-    this.client = new Anthropic({
-      apiKey: this.config.get<string>('ANTHROPIC_API_KEY'),
-    });
+  }
+
+  private async getClient(): Promise<Anthropic> {
+    const setting = await this.settings.findByKey('ANTHROPIC_API_KEY');
+    const apiKey = setting?.value || this.config.get<string>('ANTHROPIC_API_KEY');
+    
+    if (!apiKey) {
+      throw new Error('Anthropic API key is not configured in settings or environment.');
+    }
+    
+    return new Anthropic({ apiKey });
   }
 
   async chat(options: AiChatOptions): Promise<AiChatResponse> {
-    const response = await this.client.messages.create({
+    const client = await this.getClient();
+    const response = await client.messages.create({
       model: this.defaultModel,
       max_tokens: options.maxTokens ?? 8096,
       system: options.systemPrompt,
       messages: options.messages.map((m) => ({
         role: m.role,
-        content: m.content,
+        content: m.content as string,
       })),
     });
 
@@ -40,13 +52,14 @@ export class ClaudeProvider extends AiService {
     options: AiChatOptions,
     onChunk: (chunk: string) => void,
   ): Promise<void> {
-    const stream = this.client.messages.stream({
+    const client = await this.getClient();
+    const stream = client.messages.stream({
       model: this.defaultModel,
       max_tokens: options.maxTokens ?? 8096,
       system: options.systemPrompt,
       messages: options.messages.map((m) => ({
         role: m.role,
-        content: m.content,
+        content: m.content as string,
       })),
     });
 

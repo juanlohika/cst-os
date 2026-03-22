@@ -31,7 +31,7 @@ export class AgentToolCallLogger {
             inputTokens: params.inputTokens,
             outputTokens: params.outputTokens,
             costUsd: params.costUsd,
-          },
+          } as import('@prisma/client').Prisma.InputJsonValue,
         },
       });
     } catch (err) {

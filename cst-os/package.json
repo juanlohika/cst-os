@@ -10,7 +10,7 @@
   "scripts": {
     "dev": "concurrently \"npm run dev:api\" \"npm run dev:web\"",
     "dev:web": "npm run dev --workspace=apps/web",
-    "dev:api": "npm run dev --workspace=apps/api",
+    "dev:api": "npm run start:dev --workspace=apps/api",
     "build": "npm run build --workspace=apps/api && npm run build --workspace=apps/web",
     "test": "npm run test --workspaces"
   },

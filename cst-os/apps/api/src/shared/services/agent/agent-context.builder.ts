@@ -27,10 +27,10 @@ export class AgentContextBuilder {
     if (params.entityId && app.contextType) {
       try {
         switch (app.contextType) {
-          case 'client':  entityData = await this.agentDataService.getClient(params.entityId) as Record<string, unknown>; break;
-          case 'project': entityData = await this.agentDataService.getProject(params.entityId) as Record<string, unknown>; break;
-          case 'task':    entityData = await this.agentDataService.getTask(params.entityId) as Record<string, unknown>; break;
-          case 'meeting': entityData = await this.agentDataService.getMeeting(params.entityId) as Record<string, unknown>; break;
+          case 'client':  entityData = await this.agentDataService.getClient(params.entityId) as any; break;
+          case 'project': entityData = await this.agentDataService.getProject(params.entityId) as any; break;
+          case 'task':    entityData = await this.agentDataService.getTask(params.entityId) as any; break;
+          case 'meeting': entityData = await this.agentDataService.getMeeting(params.entityId) as any; break;
         }
       } catch { /* entity not found — continue with empty context */ }
     }
